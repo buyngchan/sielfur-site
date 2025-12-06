@@ -3,139 +3,178 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>JJUB STUDIO | Dashboard</title>
+  <title>내 대시보드 | JJUB STUDIO</title>
 
   <style>
     body {
       margin: 0;
-      font-family: "Pretendard", sans-serif;
+      font-family: "Pretendard", system-ui, sans-serif;
       background: #f5f7fa;
-      color: #111;
+      color: #222;
     }
 
+    /* 상단 바 */
     header {
-      width: 100%;
-      padding: 18px 28px;
       background: white;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-      position: sticky;
-      top: 0;
-      z-index: 100;
-    }
-
-    header h1 {
-      margin: 0;
+      padding: 20px;
       font-size: 20px;
       font-weight: 700;
+      border-bottom: 1px solid #eee;
     }
 
-    #logoutBtn {
-      padding: 10px 16px;
-      background: #3182f6;
-      color: white;
-      border-radius: 10px;
-      cursor: pointer;
-      font-weight: 600;
-      border: none;
-    }
-
-    .container {
-      max-width: 900px;
-      margin: 40px auto;
-      padding: 20px;
-    }
-
-    .welcome-box {
-      background: white;
-      padding: 28px;
-      border-radius: 20px;
-      box-shadow: 0 6px 16px rgba(0,0,0,0.08);
-      margin-bottom: 30px;
-    }
-
-    .welcome-box h2 {
-      margin: 0 0 10px 0;
-      font-size: 26px;
-      font-weight: 800;
-    }
-
+    /* 콘텐츠 박스 공통 */
     .card {
       background: white;
-      padding: 24px;
+      margin: 18px;
+      padding: 22px;
       border-radius: 18px;
-      margin-bottom: 20px;
-      box-shadow: 0 6px 16px rgba(0,0,0,0.06);
+      box-shadow: 0 4px 16px rgba(0,0,0,0.03);
     }
 
-    .card h3 {
-      margin-top: 0;
-      margin-bottom: 12px;
-      font-size: 20px;
-      font-weight: 700;
+    /* 사용자 정보 */
+    .user-box {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .user-box img {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background: #ddd;
+    }
+
+    .user-name {
+      font-size: 18px;
+      font-weight: 600;
+    }
+
+    /* 버튼 */
+    .btn-primary {
+      display: block;
+      width: 100%;
+      padding: 15px;
+      background: #3182f6;
+      color: white;
+      text-align: center;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 600;
+      text-decoration: none;
+      margin-top: 16px;
+    }
+
+    /* 커미션 목록 */
+    .commission-item {
+      display: flex;
+      gap: 16px;
+      padding: 14px 0;
+      border-bottom: 1px solid #eee;
+    }
+
+    .commission-item:last-child {
+      border-bottom: none;
+    }
+
+    .commission-item img {
+      width: 80px;
+      height: 80px;
+      border-radius: 12px;
+      object-fit: cover;
+    }
+
+    .comm-text .title {
+      font-weight: 600;
+      font-size: 16px;
+    }
+
+    .comm-text .price {
+      font-size: 14px;
+      color: #3182f6;
+      margin-top: 4px;
+    }
+
+    .logout {
+      margin-top: 14px;
+      text-align: center;
+      color: #777;
+      font-size: 14px;
+      cursor: pointer;
     }
   </style>
 </head>
 
 <body>
-  <header>
-    <h1>JJUB STUDIO Dashboard</h1>
-    <button id="logoutBtn">로그아웃</button>
-  </header>
+  <header>내 대시보드</header>
 
-  <div class="container">
-    <div class="welcome-box">
-      <h2 id="welcomeText">환영합니다!</h2>
-      <p>여기에서 커미션 신청 현황을 확인하거나 새로운 신청을 할 수 있습니다.</p>
+  <!-- 사용자 정보 카드 -->
+  <div class="card">
+    <div class="user-box">
+      <img src="img/default-profile.png" id="profileImg">
+      <div>
+        <div class="user-name" id="username">로그인 중...</div>
+        <div id="email" style="color:#666; font-size:14px;"></div>
+      </div>
     </div>
 
-    <div class="card">
-      <h3>커미션 신청하기</h3>
-      <p>당신만의 퍼슈트를 만들고 싶다면 아래 버튼을 눌러주세요.</p>
-      <a href="#" style="display:inline-block; padding: 12px 20px; background:#3182f6; color:white; border-radius:12px; font-weight:600; text-decoration:none;">신청 페이지로 이동</a>
-    </div>
-
-    <div class="card">
-      <h3>내 신청 현황</h3>
-      <p>현재 진행 중인 커미션 정보를 확인할 수 있습니다.</p>
-    </div>
+    <a href="new-commission.html" class="btn-primary">+ 새 커미션 등록</a>
+    <div class="logout" id="logoutBtn">로그아웃</div>
   </div>
 
+  <!-- 내가 올린 커미션 -->
+  <div class="card">
+    <h3 style="margin:0 0 16px 0; font-size:18px;">내 커미션 목록</h3>
+    <div id="myPosts">불러오는 중...</div>
+  </div>
 
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+    import { auth, db } from "./js/firebase.js";
+    import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-    const firebaseConfig = {
-       apiKey: "AIzaSyA7UuqPTbv22dFHz5ugxdwnz0XDTDUQiP0",
-  authDomain: "jjub0812.firebaseapp.com",
-  projectId: "jjub0812",
-  storageBucket: "jjub0812.firebasestorage.app",
-  messagingSenderId: "713500860924",
-  appId: "1:713500860924:web:364e16fa1d2a1dbbef5279",
-  measurementId: "G-X7MESKH6MX"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-
-    // 로그인 상태 확인
-    onAuthStateChanged(auth, (user) => {
-      if (user) {
-        document.getElementById("welcomeText").innerText = `${user.email}님 환영합니다!`;
-      } else {
-        // 로그인 안 되어있으면 로그인 페이지로
-        window.location.href = "login.html";
+    // 로그인 상태 체크
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        location.href = "login.html";
+        return;
       }
+
+      // 사용자 정보 표시
+      document.getElementById("username").innerText = user.displayName ?? "익명 사용자";
+      document.getElementById("email").innerText = user.email ?? "";
+
+      // 내 게시물 불러오기
+      const q = query(collection(db, "commissions"), where("uid", "==", user.uid));
+      const snap = await getDocs(q);
+      const box = document.getElementById("myPosts");
+
+      if (snap.empty) {
+        box.innerHTML = "<div style='color:#777;'>아직 등록한 커미션이 없습니다.</div>";
+        return;
+      }
+
+      box.innerHTML = "";
+
+      snap.forEach(doc => {
+        const d = doc.data();
+        box.innerHTML += `
+          <div class="commission-item">
+            <img src="${d.image}">
+            <div class="comm-text">
+              <div class="title">${d.title}</div>
+              <div class="price">${d.price}원</div>
+              <a href="commission.html?id=${doc.id}" style="font-size:14px; color:#3182f6; margin-top:6px; display:block;">상세 보기</a>
+            </div>
+          </div>
+        `;
+      });
     });
 
-    // 로그아웃 기능
-    document.getElementById("logoutBtn").addEventListener("click", () => {
-      signOut(auth).then(() => {
-        window.location.href = "login.html";
-      });
+    // 로그아웃
+    document.getElementById("logoutBtn").addEventListener("click", async () => {
+      await signOut(auth);
+      location.href = "login.html";
     });
   </script>
 </body>
