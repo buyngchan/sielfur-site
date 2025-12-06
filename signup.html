@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>회원가입</title>
+
+  <style>
+    body {
+      font-family: "Pretendard", sans-serif;
+      background: #f5f7fa;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+
+    .signup-box {
+      width: 360px;
+      background: white;
+      padding: 32px;
+      border-radius: 20px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+    }
+
+    h2 {
+      margin-bottom: 20px;
+      color: #111;
+      font-size: 22px;
+      font-weight: 700;
+    }
+
+    input {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #ddd;
+      border-radius: 12px;
+      margin-bottom: 12px;
+      font-size: 15px;
+    }
+
+    button {
+      width: 100%;
+      padding: 14px;
+      background: #3182f6;
+      color: white;
+      border: none;
+      font-size: 16px;
+      border-radius: 12px;
+      cursor: pointer;
+      margin-top: 8px;
+      font-weight: 600;
+    }
+
+    button:hover {
+      background: #1e6ce0;
+    }
+
+    a {
+      display: block;
+      margin-top: 16px;
+      text-align: center;
+      font-size: 14px;
+      color: #555;
+      text-decoration: none;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="signup-box">
+    <h2>회원가입</h2>
+
+    <form action="login.html">
+      <input type="email" placeholder="이메일" required />
+      <input type="password" placeholder="비밀번호" required />
+      <input type="password" placeholder="비밀번호 확인" required />
+
+      <button>가입하기</button>
+    </form>
+
+    <a href="login.html">이미 계정이 있나요? 로그인</a>
+  </div>
+</body>
+</html>
