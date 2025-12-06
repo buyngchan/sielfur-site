@@ -12,7 +12,6 @@
       background: #f5f7fa;
       color: #111;
     }
-
     header {
       width: 100%;
       padding: 18px 28px;
@@ -24,13 +23,11 @@
       position: sticky;
       top: 0;
     }
-
     header h1 {
       margin: 0;
       font-size: 20px;
       font-weight: 700;
     }
-
     header nav a {
       margin-left: 16px;
       text-decoration: none;
@@ -38,30 +35,25 @@
       font-weight: 600;
       font-size: 15px;
     }
-
     .hero {
       text-align: center;
       padding: 120px 20px;
     }
-
     .hero h2 {
       font-size: 36px;
       margin-bottom: 12px;
       font-weight: 800;
     }
-
     .hero p {
       font-size: 18px;
       color: #555;
       margin-bottom: 40px;
     }
-
     .btn-box {
       display: flex;
       justify-content: center;
       gap: 14px;
     }
-
     .btn {
       padding: 14px 28px;
       border-radius: 14px;
@@ -70,21 +62,17 @@
       display: inline-block;
       font-weight: 600;
     }
-
     .btn-primary {
       background: #3182f6;
       color: white;
     }
-
     .btn-primary:hover {
       background: #1e6ce0;
     }
-
     .btn-sub {
       background: #e5eaf0;
       color: #333;
     }
-
     footer {
       text-align: center;
       padding: 40px;
@@ -95,11 +83,8 @@
 </head>
 
 <body>
-  <header>
 
-  // Initialize Firebase
-  const app = initializeApp(firebaseConfig);
-  const analytics = getAnalytics(app);
+  <header>
     <h1>JJUB STUDIO</h1>
     <nav>
       <a href="login.html">로그인</a>
@@ -120,5 +105,28 @@
   <footer>
     © 2025 JJUB STUDIO. All rights reserved.
   </footer>
+
+  <!-- 여기에 Firebase 코드 넣어야 함 -->
+  <script type="module">
+    // Firebase SDK import
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics.js";
+
+    // Firebase Config
+    const firebaseConfig = {
+      apiKey: "...",
+      authDomain: "...",
+      projectId: "...",
+      storageBucket: "...",
+      messagingSenderId: "...",
+      appId: "...",
+      measurementId: "..."
+    };
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const analytics = getAnalytics(app);
+  </script>
+
 </body>
 </html>
