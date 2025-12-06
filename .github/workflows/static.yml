@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>퍼슈트 커미션 신청 사이트</title>
+  <style>
+    body { font-family: 'Pretendard', sans-serif; background:#f7f8fa; margin:0; padding:0; }
+    header { background:white; padding:20px; font-size:20px; font-weight:600; border-bottom:1px solid #e5e5e5; }
+    .container { max-width:600px; margin:30px auto; background:white; padding:25px; border-radius:16px; box-shadow:0 4px 20px rgba(0,0,0,0.05); }
+    input, textarea, select { width:100%; padding:14px; margin-top:10px; border:1px solid #ddd; border-radius:10px; font-size:15px; }
+    button { width:100%; padding:14px; background:#0064ff; color:white; font-size:16px; border:none; border-radius:12px; margin-top:20px; cursor:pointer; }
+    button:hover { background:#0050d4; }
+    .link { text-align:center; margin-top:20px; font-size:14px; color:#666; cursor:pointer; }
+    .hidden { display:none; }
+  </style>
+</head>
+<body>
+
+<header>JJUB STUDIO 퍼슈트 커미션</header>
+
+<!-- 로그인 페이지 -->
+<div id="loginPage" class="container">
+  <h2>로그인</h2>
+  <input type="email" placeholder="이메일" id="loginEmail">
+  <input type="password" placeholder="비밀번호" id="loginPw">
+  <button onclick="login()">로그인</button>
+  <p class="link" onclick="showSignup()">회원가입하기</p>
+</div>
+
+<!-- 회원가입 페이지 -->
+<div id="signupPage" class="container hidden">
+  <h2>회원가입</h2>
+  <input type="email" placeholder="이메일" id="signupEmail">
+  <input type="password" placeholder="비밀번호" id="signupPw">
+  <button onclick="signup()">회원가입</button>
+  <p class="link" onclick="showLogin()">로그인으로 돌아가기</p>
+</div>
+
+<!-- 커미션 신청 페이지 -->
+<div id="applyPage" class="container hidden">
+  <h2>커미션 신청</h2>
+  <input type="text" placeholder="이름" id="userName">
+  <input type="text" placeholder="연락처" id="contact">
+  <select id="commissionType">
+    <option>전체 퍼슈트</option>
+    <option>하프 슈트</option>
+    <option>헤드 단독</option>
+  </select>
+  <textarea rows="6" placeholder="상세 요청사항" id="details"></textarea>
+  <button onclick="submitForm()">신청 제출</button>
+</div>
+
+<!-- 메이커 전용 관리자 페이지 -->
+<div id="makerPage" class="container hidden">
+  <h2>메이커 전용 페이지</h2>
+  <p>신청 들어온 목록</p>
+  <div id="requestList" style="margin-top:15px;"></div>
+  <button onclick="logout()" style="background:#ff3b30;">로그아웃</button>
+</div>
+
+<script>
+let users = JSON.parse(localStorage.getItem('users') || '{}');
+let requests = JSON.parse(localStorage.getItem('requests') || '[]');
+
+function showLogin(){ document.getElementById('loginPage').classList.remove('hidden'); document.getElementById('signupPage').classList.add('hidden'); }
+function showSignup(){ document.getElementById('signupPage').classList.remove('hidden'); document.getElementById('loginPage').classList.add('hidden'); }
+
+function login() {
+  const email = loginEmail.value;
+  const pw = loginPw.value;
+  if(users[email] && users[email] === pw){
+    if(email === 'maker@jjub.com'){ showMaker(); }
+    else{ showApply(); }
+  } else alert('이메일 또는 비밀번호가 틀렸습니다');
+}
+
+function signup(){
+  const email = signupEmail.value;
+  const pw = signupPw.value;
+  users[email] = pw;
+  localStorage.setItem('users', JSON.stringify(users));
+  alert('회원가입 완료! 로그인해주세요');
+  showLogin();
+}
+
+function showApply(){ loginPage.classList.add('hidden'); applyPage.classList.remove('hidden'); }
+function showMaker(){ loginPage.classList.add('hidden'); makerPage.classList.remove('hidden'); renderRequests(); }
+
+function submitForm(){
+  const data = {
+    name:userName.value,
+    contact:contact.value,
+    type:commissionType.value,
+    details:details.value
+  };
+  requests.push(data);
+  localStorage.setItem('requests', JSON.stringify(requests));
+  alert('신청이 완료되었습니다!');
+}
+
+function renderRequests(){
+  requestList.innerHTML = requests.map(r => `
+    <div style='padding:15px; border:1px solid #ddd; border-radius:10px; margin-bottom:10px;'>
+      <b>${r.type}</b><br>
+      신청자: ${r.name}<br>
+      연락처: ${r.contact}<br>
+      내용: ${r.details}
+    </div>
+  `).join('');
+}
+
+function logout(){ location.reload(); }
+</script>
+
+</body>
+</html><!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>jjubstudio | 퍼슈트 커미션 시스템</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:"Noto Sans KR",sans-serif;background:#F7F9FB;color:#0F1724}
+    a{text-decoration:none;color:inherit}
+
+    /* NAV */
+    nav{display:flex;justify-content:space-between;align-items:center;padding:16px 28px;background:#fff;border-bottom:1px solid #E7EDF3;position:sticky;top:0;z-index:20}
+    .logo{font-weight:700;font-size:20px;color:#6A4DFF}
+    .nav-btn{padding:8px 16px;border-radius:10px;border:1px solid #DDE4EC;background:#fff;cursor:pointer}
+    .nav-btn.primary{border:0;background:#6A4DFF;color:#fff}
+
+    /* PAGES */
+    .page{display:none;padding:32px;max-width:900px;margin:0 auto}
+    .active{display:block}
+
+    /* CARD */
+    .card{background:#fff;border:1px solid #E7EDF3;border-radius:14px;padding:20px;margin-bottom:20px}
+    .title{font-size:20px;font-weight:700;margin-bottom:16px}
+    label{font-size:14px;margin-bottom:6px;display:block;font-weight:500}
+    .input,.textarea{width:100%;padding:12px;border-radius:10px;border:1px solid #DDE4EC;margin-bottom:14px;font-size:14px}
+    .textarea{min-height:100px;resize:vertical}
+
+    .btn{padding:12px 16px;border-radius:12px;border:0;font-weight:600;cursor:pointer}
+    .btn.primary{background:#6A4DFF;color:#fff}
+    .btn.ghost{background:#fff;border:1px solid #DDE4EC}
+
+    /* LOGIN FORM */
+    .auth-wrap{max-width:420px;margin:40px auto}
+
+    /* TABLE */
+    table{width:100%;border-collapse:collapse;font-size:14px}
+    th,td{padding:10px;border-bottom:1px solid #E7EDF3;text-align:left}
+    th{background:#F2F5FA;font-weight:600}
+  </style>
+</head>
+<body>
+
+  <!-- NAVIGATION -->
+  <nav>
+    <div class="logo">jjubstudio</div>
+    <div>
+      <button class="nav-btn" onclick="openPage('loginPage')">로그인</button>
+      <button class="nav-btn primary" onclick="openPage('signupPage')">회원가입</button>
+    </div>
+  </nav>
+
+  <!-- LOGIN PAGE -->
+  <section id="loginPage" class="page active">
+    <div class="auth-wrap card">
+      <div class="title">로그인</div>
+      <label>이메일</label>
+      <input id="loginEmail" class="input" type="email" placeholder="example@email.com" />
+
+      <label>비밀번호</label>
+      <input id="loginPass" class="input" type="password" placeholder="비밀번호" />
+
+      <button class="btn primary" onclick="login()">로그인</button>
+    </div>
+  </section>
+
+  <!-- SIGNUP PAGE -->
+  <section id="signupPage" class="page">
+    <div class="auth-wrap card">
+      <div class="title">회원가입</div>
+      <label>이메일</label>
+      <input id="signupEmail" class="input" type="email" />
+
+      <label>비밀번호</label>
+      <input id="signupPass" class="input" type="password" />
+
+      <button class="btn primary" onclick="signup()">가입하기</button>
+    </div>
+  </section>
+
+  <!-- COMMISSION FORM PAGE -->
+  <section id="formPage" class="page">
+    <div class="card">
+      <div class="title">퍼슈트 커미션 신청</div>
+      <label>이름</label>
+      <input id="cName" class="input" />
+
+      <label>연락처</label>
+      <input id="cContact" class="input" />
+
+      <label>예산</label>
+      <input id="cBudget" class="input" type="number" />
+
+      <label>상세 설명</label>
+      <textarea id="cNotes" class="textarea"></textarea>
+
+      <button class="btn primary" onclick="submitCommission()">제출하기</button>
+    </div>
+  </section>
+
+  <!-- MAKER DASHBOARD -->
+  <section id="makerPage" class="page">
+    <div class="card">
+      <div class="title">메이커 전용 대시보드</div>
+      <table>
+        <thead>
+          <tr><th>이름</th><th>연락처</th><th>예산</th><th>요청사항</th></tr>
+        </thead>
+        <tbody id="makerTable"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <script>
+    function openPage(id){
+      document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+      document.getElementById(id).classList.add('active');
+    }
+
+    /* 회원가입 */
+    function signup(){
+      const email = document.getElementById('signupEmail').value;
+      const pass = document.getElementById('signupPass').value;
+      if(!email || !pass) return alert('모두 입력해주세요');
+
+      localStorage.setItem('user:'+email, pass);
+      alert('가입 완료! 로그인해주세요.');
+      openPage('loginPage');
+    }
+
+    /* 로그인 */
+    function login(){
+      const email = document.getElementById('loginEmail').value;
+      const pass = document.getElementById('loginPass').value;
+      const saved = localStorage.getItem('user:'+email);
+
+      if(saved && saved === pass){
+        alert('로그인 성공');
+        if(email === 'maker@jjub.com'){ openPage('makerPage'); loadMaker(); }
+        else{ openPage('formPage'); }
+      } else {
+        alert('이메일 또는 비밀번호가 잘못되었습니다.');
+      }
+    }
+
+    /* 커미션 제출 */
+    function submitCommission(){
+      const data = {
+        name: cName.value,
+        contact: cContact.value,
+        budget: cBudget.value,
+        notes: cNotes.value
+      };
+
+      let arr = JSON.parse(localStorage.getItem('commissionList')||'[]');
+      arr.push(data);
+      localStorage.setItem('commissionList', JSON.stringify(arr));
+      alert('제출 완료!');
+    }
+
+    /* 메이커 페이지 데이터 표시 */
+    function loadMaker(){
+      const arr = JSON.parse(localStorage.getItem('commissionList')||'[]');
+      const tbody = document.getElementById('makerTable');
+      tbody.innerHTML = '';
+      arr.forEach(d=>{
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${d.name}</td><td>${d.contact}</td><td>${d.budget}</td><td>${d.notes}</td>`;
+        tbody.appendChild(tr);
+      });
+    }
+  </script>
+
+</body>
+</html>
