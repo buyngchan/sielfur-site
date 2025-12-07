@@ -107,18 +107,15 @@
   <div class="card">
     <div class="title">프로필 수정</div>
 
-    <!-- 프로필 이미지 미리보기 -->
     <img id="preview" src="img/default-profile.png" class="profile-preview" alt="프로필 이미지">
 
-    <div class="center-text">프로필 사진을 변경하려면 이미지를 선택하세요.</div>
+    <div class="center-text" id="statusText">로그인 상태 확인 중...</div>
     <input type="file" id="profileUpload" accept="image/*">
 
-    <!-- 닉네임 -->
     <label for="nickname">닉네임</label>
     <input type="text" id="nickname" class="text-input" placeholder="표시할 이름을 입력하세요.">
 
-    <!-- 저장 버튼 -->
-    <button id="saveBtn" class="btn-primary">저장하기</button>
+    <button id="saveBtn" class="btn-primary" disabled>저장하기</button>
 
     <div class="btn-secondary">
       <a href="dashboard.html">취소하고 대시보드로 돌아가기</a>
@@ -126,20 +123,17 @@
   </div>
 
   <script type="module">
-    // ============================
-    //  Firebase 초기화 (CDN 사용)
-    // ============================
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import { 
-      getAuth, 
-      onAuthStateChanged, 
-      updateProfile 
+    import {
+      getAuth,
+      onAuthStateChanged,
+      updateProfile
     } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-    import { 
-      getStorage, 
-      ref, 
-      uploadBytes, 
-      getDownloadURL 
+    import {
+      getStorage,
+      ref,
+      uploadBytes,
+      getDownloadURL
     } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
 
     const firebaseConfig = {
@@ -156,74 +150,72 @@
     const auth = getAuth(app);
     const storage = getStorage(app);
 
-    // ============================
-    //  DOM 요소
-    // ============================
     const previewEl = document.getElementById("preview");
     const uploadInput = document.getElementById("profileUpload");
     const nicknameInput = document.getElementById("nickname");
     const saveBtn = document.getElementById("saveBtn");
+    const statusText = document.getElementById("statusText");
 
     let currentUser = null;
     let newFile = null;
 
-    // 1) 로그인된 유저 정보 불러오기
+    // 로그인된 유저 정보 불러오기
     onAuthStateChanged(auth, (user) => {
       if (!user) {
+        statusText.textContent = "로그인이 필요합니다. 로그인 페이지로 이동합니다.";
         alert("로그인이 필요합니다.");
-        // 로그인 페이지 파일명에 맞게 수정 (login.html / index.html 등)
         location.href = "login.html";
         return;
       }
 
       currentUser = user;
+      statusText.textContent = `로그인 중: ${user.displayName || user.email || "사용자"}`;
+      saveBtn.disabled = false;
 
-      // 닉네임 기본값 세팅
       if (user.displayName) {
         nicknameInput.value = user.displayName;
       }
 
-      // 프로필 사진 기본값 세팅
       if (user.photoURL) {
         previewEl.src = user.photoURL;
       }
     });
 
-    // 2) 이미지 선택 시 미리보기
+    // 이미지 선택 → 미리보기
     uploadInput.addEventListener("change", (e) => {
       const file = e.target.files[0];
       if (!file) return;
-
       newFile = file;
       const url = URL.createObjectURL(file);
       previewEl.src = url;
     });
 
-    // 3) 저장하기 버튼 클릭 시
+    // 저장하기 버튼 클릭
     saveBtn.addEventListener("click", async () => {
-      if (!currentUser) return;
+      if (!currentUser) {
+        alert("로그인 정보가 없습니다. 다시 로그인해 주세요.");
+        location.href = "login.html";
+        return;
+      }
 
       const newName = nicknameInput.value.trim();
-
       if (!newName && !newFile) {
         alert("변경할 닉네임이나 이미지를 입력해 주세요.");
         return;
       }
 
       saveBtn.disabled = true;
-      saveBtn.innerText = "저장 중...";
+      saveBtn.textContent = "저장 중...";
 
       try {
         let photoURL = currentUser.photoURL || null;
 
-        // 새 이미지가 있으면 Storage에 업로드
         if (newFile) {
           const fileRef = ref(storage, `profiles/${currentUser.uid}.jpg`);
           await uploadBytes(fileRef, newFile);
           photoURL = await getDownloadURL(fileRef);
         }
 
-        // Auth 프로필 업데이트
         await updateProfile(currentUser, {
           displayName: newName || currentUser.displayName,
           photoURL: photoURL
@@ -235,7 +227,7 @@
         console.error(err);
         alert("저장 중 오류가 발생했습니다. 콘솔을 확인해 주세요.");
         saveBtn.disabled = false;
-        saveBtn.innerText = "저장하기";
+        saveBtn.textContent = "저장하기";
       }
     });
   </script>
