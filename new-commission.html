@@ -34,6 +34,7 @@
       max-width: 640px;
       margin: 18px auto 40px;
       padding: 0 16px;
+      box-sizing: border-box;
     }
 
     .card {
@@ -81,17 +82,9 @@
       margin-top: 3px;
     }
 
-    .image-upload {
-      border: 1px dashed #ccc;
-      border-radius: 12px;
-      padding: 14px;
-      text-align: center;
-      background: #fafafa;
-      cursor: pointer;
-    }
-
-    .image-upload input {
-      display: none;
+    /* 이미지 업로드 */
+    input[type="file"] {
+      font-size: 13px;
     }
 
     .image-preview {
@@ -101,6 +94,7 @@
       border-radius: 12px;
       object-fit: cover;
       display: none;
+      border: 1px solid #eee;
     }
 
     .btn-submit {
@@ -134,11 +128,8 @@
       <div class="section-title">기본 정보</div>
 
       <!-- 대표 이미지 -->
-      <label>대표 이미지 (필수)</label>
-      <div class="image-upload" id="imageBox">
-        클릭해서 이미지 선택
-        <input type="file" id="imageInput" accept="image/*">
-      </div>
+      <label for="imageInput">대표 이미지 (필수)</label>
+      <input type="file" id="imageInput" accept="image/*">
       <img id="preview" class="image-preview" alt="미리보기">
 
       <!-- 제목 -->
@@ -150,7 +141,7 @@
       <input type="number" id="price" placeholder="예) 80000">
       <div class="hint">최종 안내할 기본 가격을 적어주세요.</div>
 
-      <!-- 카테고리/타입 -->
+      <!-- 타입 -->
       <label for="category">커미션 타입</label>
       <select id="category">
         <option value="">선택 안 함</option>
@@ -170,7 +161,7 @@
 
       <!-- 태그 -->
       <label for="tags">태그</label>
-      <input type="text" id="tags" placeholder="예) 퍼리, 전신, 셀프샷, 귀여운, 쥬비스튜디오">
+      <input type="text" id="tags" placeholder="예) 퍼리, 전신, 셀프샷, 귀여운, 쭈비스튜디오">
       <div class="hint">쉼표(,)로 구분해서 여러 개 적을 수 있어요.</div>
 
       <!-- 슬롯 -->
@@ -183,13 +174,13 @@
     </div>
   </div>
 
+  <!-- 여기부터 JS지만, 전부 이 html 파일 안에 들어가는 거라 따로 js 파일 안 만들어도 돼 -->
   <script type="module">
     import { auth, db, storage } from "./js/firebase.js";
     import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
     import { collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
     import { ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
 
-    const imageBox = document.getElementById("imageBox");
     const imageInput = document.getElementById("imageInput");
     const preview = document.getElementById("preview");
     const submitBtn = document.getElementById("submitBtn");
@@ -197,34 +188,33 @@
     let currentUser = null;
     let selectedFile = null;
 
-    // 로그인 상태 체크
+    // 1) 로그인 체크
     onAuthStateChanged(auth, (user) => {
       if (!user) {
         alert("로그인이 필요합니다.");
-        location.href = "login.html";
+        location.href = "login.html"; // 필요하면 index.html로 바꿔도 됨
         return;
       }
       currentUser = user;
     });
 
-    // 이미지 선택 박스 클릭 → 파일 선택
-    imageBox.addEventListener("click", () => {
-      imageInput.click();
-    });
-
-    // 이미지 파일 선택 시 미리보기
+    // 2) 이미지 선택 시 미리보기
     imageInput.addEventListener("change", (e) => {
       const file = e.target.files[0];
       if (!file) return;
       selectedFile = file;
+
       const url = URL.createObjectURL(file);
       preview.src = url;
       preview.style.display = "block";
     });
 
-    // 커미션 등록 버튼
+    // 3) 등록 버튼 클릭
     submitBtn.addEventListener("click", async () => {
-      if (!currentUser) return;
+      if (!currentUser) {
+        alert("로그인 정보가 없습니다.");
+        return;
+      }
 
       const title = document.getElementById("title").value.trim();
       const price = document.getElementById("price").value.trim();
@@ -234,7 +224,6 @@
       const tagsRaw = document.getElementById("tags").value.trim();
       const slotsRaw = document.getElementById("slots").value.trim();
 
-      // 기본 검증
       if (!selectedFile) {
         alert("대표 이미지를 등록해 주세요.");
         return;
@@ -256,46 +245,18 @@
       submitBtn.innerText = "등록 중...";
 
       try {
-        // 1) 이미지 업로드
+        // 4) 이미지 Storage에 업로드
         const imgRef = ref(storage, `commissions/${currentUser.uid}_${Date.now()}.jpg`);
         await uploadBytes(imgRef, selectedFile);
         const imageUrl = await getDownloadURL(imgRef);
 
-        // 2) 태그 배열로 변환
+        // 5) 태그 배열화
         let tags = [];
         if (tagsRaw) {
           tags = tagsRaw.split(",").map(t => t.trim()).filter(t => t);
         }
 
-        // 3) 슬롯 숫자 변환
+        // 6) 슬롯 숫자 변환
         const maxSlots = slotsRaw ? Number(slotsRaw) : null;
 
-        // 4) Firestore에 문서 추가
-        const docRef = await addDoc(collection(db, "commissions"), {
-          uid: currentUser.uid,
-          authorName: currentUser.displayName || "익명",
-          title: title,
-          price: Number(price),
-          category: category || null,
-          shortDesc: shortDesc || "",
-          description: desc,
-          image: imageUrl,
-          tags: tags,
-          maxSlots: maxSlots,
-          isOpen: true,
-          createdAt: serverTimestamp()
-        });
-
-        alert("커미션이 등록되었습니다!");
-        // 새로 만든 커미션 상세 페이지로 이동 (commission.html?id=문서ID)
-        location.href = `commission.html?id=${docRef.id}`;
-      } catch (err) {
-        console.error(err);
-        alert("등록 중 오류가 발생했습니다. 다시 시도해 주세요.");
-        submitBtn.disabled = false;
-        submitBtn.innerText = "등록하기";
-      }
-    });
-  </script>
-</body>
-</html>
+        // 7)
