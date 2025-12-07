@@ -1,25 +1,21 @@
-// /js/firebase.js
+// Import the functions you need from the SDKs you need
+import { initializeApp } from "firebase/app";
+import { getAnalytics } from "firebase/analytics";
+// TODO: Add SDKs for Firebase products that you want to use
+// https://firebase.google.com/docs/web/setup#available-libraries
 
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getAuth } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { getFirestore } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-import { getStorage } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
-
-// 🔥 여기 firebaseConfig 안 내용을 "네 Firebase 콘솔"에서 복사해서 넣어줘야 함
-// Firebase 콘솔 → 프로젝트 설정 → 내 앱 → SDK 설정에 이런 형식으로 있음:
+// Your web app's Firebase configuration
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
-  apiKey: "여기에_네_apiKey",
-  authDomain: "여기에_네_authDomain",
-  projectId: "여기에_네_projectId",
-  storageBucket: "여기에_네_storageBucket",
-  messagingSenderId: "여기에_네_messagingSenderId",
-  appId: "여기에_네_appId"
+  apiKey: "AIzaSyA7UuqPTbv22dFHz5ugxdwnz0XDTDUQiP0",
+  authDomain: "jjub0812.firebaseapp.com",
+  projectId: "jjub0812",
+  storageBucket: "jjub0812.firebasestorage.app",
+  messagingSenderId: "713500860924",
+  appId: "1:713500860924:web:364e16fa1d2a1dbbef5279",
+  measurementId: "G-X7MESKH6MX"
 };
 
-// Firebase 초기화
+// Initialize Firebase
 const app = initializeApp(firebaseConfig);
-
-// 다른 파일에서 쓸 수 있도록 export
-export const auth = getAuth(app);
-export const db = getFirestore(app);
-export const storage = getStorage(app);
+const analytics = getAnalytics(app);
