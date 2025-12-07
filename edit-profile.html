@@ -174,3 +174,44 @@
     });
 
     // 3) 저장하기 버튼 클릭 시
+    saveBtn.addEventListener("click", async () => {
+      if (!currentUser) return;
+
+      const newName = nicknameInput.value.trim();
+
+      if (!newName && !newFile) {
+        alert("변경할 닉네임이나 이미지를 입력해 주세요.");
+        return;
+      }
+
+      saveBtn.disabled = true;
+      saveBtn.innerText = "저장 중...";
+
+      try {
+        let photoURL = currentUser.photoURL || null;
+
+        // 새 이미지가 있으면 Storage에 업로드
+        if (newFile) {
+          const fileRef = ref(storage, `profiles/${currentUser.uid}.jpg`);
+          await uploadBytes(fileRef, newFile);
+          photoURL = await getDownloadURL(fileRef);
+        }
+
+        // Auth 프로필 업데이트
+        await updateProfile(currentUser, {
+          displayName: newName || currentUser.displayName,
+          photoURL: photoURL
+        });
+
+        alert("프로필이 저장되었습니다!");
+        location.href = "dashboard.html";
+      } catch (err) {
+        console.error(err);
+        alert("저장 중 오류가 발생했습니다. 콘솔을 확인해 주세요.");
+        saveBtn.disabled = false;
+        saveBtn.innerText = "저장하기";
+      }
+    });
+  </script>
+</body>
+</html>
