@@ -13,20 +13,50 @@
       color: #222;
     }
 
+    /* 상단 헤더 */
     header {
       background: white;
-      padding: 20px;
-      font-size: 20px;
-      font-weight: 700;
+      padding: 14px 16px;
       border-bottom: 1px solid #eee;
     }
 
+    .header-inner {
+      max-width: 960px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .header-title {
+      font-size: 20px;
+      font-weight: 700;
+    }
+
+    /* 오른쪽 상단 메뉴 버튼 */
+    .menu-btn {
+      padding: 8px 14px;
+      border-radius: 999px;
+      border: 1px solid #dde3ea;
+      font-size: 14px;
+      text-decoration: none;
+      color: #333;
+      background: #f8fafc;
+    }
+
+    .menu-btn:hover {
+      background: #eef2f7;
+    }
+
+    /* 카드 공통 */
     .card {
       background: white;
-      margin: 18px;
+      margin: 18px auto;
       padding: 22px;
       border-radius: 18px;
       box-shadow: 0 4px 16px rgba(0,0,0,0.03);
+      max-width: 960px;
+      box-sizing: border-box;
     }
 
     .user-box {
@@ -77,11 +107,26 @@
       border-bottom: 1px solid #eee;
     }
 
+    .commission-item:last-child {
+      border-bottom: none;
+    }
+
     .commission-item img {
       width: 80px;
       height: 80px;
       border-radius: 12px;
       object-fit: cover;
+    }
+
+    .comm-text .title {
+      font-weight: 600;
+      font-size: 16px;
+    }
+
+    .comm-text .price {
+      font-size: 14px;
+      color: #3182f6;
+      margin-top: 4px;
     }
 
     .logout {
@@ -96,44 +141,50 @@
 </head>
 
 <body>
-  <header>내 대시보드</header>
+  <!-- 상단바 + 오른쪽 메뉴 버튼 -->
+  <header>
+    <div class="header-inner">
+      <div class="header-title">내 대시보드</div>
+
+      <!-- 🔥 메뉴 버튼: 다른 유저 창작물 피드 페이지로 이동 (home.html) -->
+      <a href="home.html" class="menu-btn">메뉴</a>
+    </div>
+  </header>
 
   <!-- 프로필 카드 -->
   <div class="card">
     <div class="user-box">
-      <img src="img/default-profile.png">
+      <img src="img/default-profile.png" alt="프로필 이미지">
 
       <div>
         <div class="user-name">로그인된 사용자</div>
         <div style="color:#666; font-size:14px;">user@email.com</div>
 
-        <!-- 🔥 프로필 수정하기 클릭 → edit-profile.html -->
+        <!-- 프로필 수정 페이지로 이동 -->
         <a href="edit-profile.html" class="edit-btn">프로필 수정하기</a>
       </div>
     </div>
 
-    <!-- 🔥 새 커미션 등록 → new-commission.html -->
+    <!-- 새 커미션 등록 페이지로 이동 -->
     <a href="new-commission.html" class="btn-primary">+ 새 커미션 등록</a>
 
-    <!-- 🔥 로그아웃 → index.html (JS 없이 이동만) -->
+    <!-- 로그아웃 → index.html로 이동 (현재는 단순 이동만, 실제 로그아웃 로직은 나중에 JS로) -->
     <a href="index.html" class="logout">로그아웃</a>
   </div>
 
-  <!-- 커미션 목록 (현재는 HTML 더미) -->
+  <!-- 내 커미션 목록 (지금은 샘플, 나중에 JS로 Firestore에서 불러오게 할 수 있음) -->
   <div class="card">
     <h3 style="margin:0 0 16px 0; font-size:18px;">내 커미션 목록</h3>
 
-    <!-- 실제 데이터 연동 필요 시 그때 JS 추가 -->
     <div class="commission-item">
-      <img src="img/default-profile.png">
-      <div>
+      <img src="img/default-profile.png" alt="커미션 이미지">
+      <div class="comm-text">
         <div class="title">샘플 커미션 제목</div>
         <div class="price">30000원</div>
-        <a href="#" style="font-size:14px; color:#3182f6; display:block; margin-top:6px;">상세 보기</a>
+        <a href="#" style="font-size:14px; color:#3182f6; margin-top:6px; display:block;">상세 보기</a>
       </div>
     </div>
 
   </div>
-
 </body>
 </html>
