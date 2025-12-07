@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>홈 피드 | JJUB STUDIO</title>
+
+  <style>
+    body {
+      margin: 0;
+      font-family: "Pretendard", system-ui, sans-serif;
+      background: #f5f7fa;
+      color: #222;
+    }
+
+    /* 상단 헤더 */
+    header {
+      background: white;
+      padding: 14px 16px;
+      border-bottom: 1px solid #eee;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .header-inner {
+      max-width: 960px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .back-link {
+      font-size: 13px;
+      color: #3182f6;
+      text-decoration: none;
+    }
+
+    .header-title {
+      font-size: 18px;
+      font-weight: 700;
+    }
+
+    .header-right {
+      font-size: 13px;
+      color: #666;
+    }
+
+    /* 컨테이너 */
+    .container {
+      max-width: 960px;
+      margin: 16px auto 32px;
+      padding: 0 16px;
+      box-sizing: border-box;
+    }
+
+    .section-title {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 10px;
+    }
+
+    .section-sub {
+      font-size: 13px;
+      color: #777;
+      margin-bottom: 16px;
+    }
+
+    /* 피드 그리드 */
+    .feed-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 16px;
+    }
+
+    .card-comm {
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.03);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      cursor: pointer;
+      text-decoration: none;
+      color: inherit;
+      transition: transform 0.12s ease, box-shadow 0.12s ease;
+    }
+
+    .card-comm:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 18px rgba(0,0,0,0.06);
+    }
+
+    .card-thumb {
+      width: 100%;
+      height: 160px;
+      background: #ddd;
+      object-fit: cover;
+    }
+
+    .card-body {
+      padding: 12px 13px 13px;
+    }
+
+    .card-title {
+      font-size: 15px;
+      font-weight: 600;
+      margin-bottom: 4px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .card-price {
+      font-size: 14px;
+      color: #3182f6;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .card-author {
+      font-size: 12px;
+      color: #666;
+      margin-bottom: 6px;
+    }
+
+    .card-desc {
+      font-size: 12px;
+      color: #555;
+      max-height: 32px;
+      overflow: hidden;
+    }
+
+    .empty-text {
+      font-size: 14px;
+      color: #777;
+      margin-top: 10px;
+    }
+
+    .loading {
+      font-size: 14px;
+      color: #666;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="header-inner">
+      <div class="header-left">
+        <a href="dashboard.html" class="back-link">← 내 대시보드</a>
+        <div class="header-title">홈 피드</div>
+      </div>
+      <div class="header-right">
+        다른 작가들의 커미션을 둘러보세요
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <div class="section-title">전체 커미션 피드</div>
+    <div class="section-sub">내가 올린 것 빼고, 다른 유저들이 올린 커미션이 보여요.</div>
+
+    <div id="feedStatus" class="loading">불러오는 중...</div>
+    <div id="feedGrid" class="feed-grid"></div>
+  </main>
+
+  <script type="module">
+    // Firebase SDK from CDN
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { 
+      getAuth, 
+      onAuthStateChanged 
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { 
+      getFirestore, 
+      collection, 
+      getDocs, 
+      query, 
+      orderBy 
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+    // 🔥 네 프로젝트 설정 (같은 config 재사용)
+    const firebaseConfig = {
+      apiKey: "AIzaSyA7UuqPTbv22dFHz5ugxdwnz0XDTDUQiP0",
+      authDomain: "jjub0812.firebaseapp.com",
+      projectId: "jjub0812",
+      storageBucket: "jjub0812.firebasestorage.app",
+      messagingSenderId: "713500860924",
+      appId: "1:713500860924:web:364e16fa1d2a1dbbef5279",
+      measurementId: "G-X7MESKH6MX"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    const feedGrid = document.getElementById("feedGrid");
+    const feedStatus = document.getElementById("feedStatus");
+
+    onAuthStateChanged(auth, async (user) => {
+      try {
+        // 로그인 안 되어 있어도 그냥 전체 피드 보여주고 싶으면 이 if문 제거하면 됨
+        if (!user) {
+          alert("로그인이 필요합니다.");
+          location.href = "login.html";
+          return;
+        }
+
+        // 커미션 전체 불러오기 (최신순)
+        const q = query(collection(db, "commissions"), orderBy("createdAt", "desc"));
+        const snap = await getDocs(q);
+
+        if (snap.empty) {
+          feedStatus.textContent = "아직 등록된 커미션이 없습니다.";
+          return;
+        }
+
+        feedStatus.textContent = "";
+        feedGrid.innerHTML = "";
+
+        snap.forEach(doc => {
+          const d = doc.data();
+
+          // 🔹 내 커미션은 제외 (내가 아닌 다른 사람 것만)
+          if (d.uid === user.uid) return;
+
+          const id = doc.id;
+          const image = d.image || "img/default-profile.png";
+          const title = d.title || "제목 없음";
+          const price = d.price != null ? `${d.price}원` : "가격 미정";
+          const authorName = d.authorName || "익명 작가";
+          const shortDesc = d.shortDesc || d.description || "";
+
+          const card = document.createElement("a");
+          card.href = `commission.html?id=${id}`;
+          card.className = "card-comm";
+
+          card.innerHTML = `
+            <img src="${image}" class="card-thumb" alt="커미션 이미지">
+            <div class="card-body">
+              <div class="card-title">${title}</div>
+              <div class="card-price">${price}</div>
+              <div class="card-author">by ${authorName}</div>
+              <div class="card-desc">${shortDesc}</div>
+            </div>
+          `;
+
+          feedGrid.appendChild(card);
+        });
+
+        // 모든 문서가 내 것뿐이었으면?
+        if (!feedGrid.children.length) {
+          feedStatus.textContent = "현재 다른 사람이 올린 커미션이 없습니다.";
+        }
+
+      } catch (err) {
+        console.error(err);
+        feedStatus.textContent = "피드를 불러오는 중 오류가 발생했습니다.";
+      }
+    });
+  </script>
+</body>
+</html>
