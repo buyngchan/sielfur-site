@@ -1,53 +1,202 @@
-<script type="module">
-  import { auth, db } from "./js/firebase.js";  // ⚠ storage 빼기!
-  import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-  import { collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>내 대시보드 | JJUB STUDIO</title>
 
-  onAuthStateChanged(auth, async (user) => {
-    if (!user) {
-      // 로그아웃 후 가는 페이지
-      location.href = "index.html";
-      return;
+  <style>
+    body {
+      margin: 0;
+      font-family: "Pretendard", system-ui, sans-serif;
+      background: #f5f7fa;
+      color: #222;
     }
 
-    document.getElementById("username").innerText = user.displayName ?? "익명 사용자";
-    document.getElementById("email").innerText = user.email ?? "";
-    if (user.photoURL) document.getElementById("profileImg").src = user.photoURL;
-
-    // 내 커미션 목록 불러오기
-    const q = query(collection(db, "commissions"), where("uid", "==", user.uid));
-    const snap = await getDocs(q);
-    const box = document.getElementById("myPosts");
-
-    if (snap.empty) {
-      box.innerHTML = "<div style='color:#777;'>아직 등록한 커미션이 없습니다.</div>";
-      return;
+    header {
+      background: white;
+      padding: 20px;
+      font-size: 20px;
+      font-weight: 700;
+      border-bottom: 1px solid #eee;
     }
 
-    box.innerHTML = "";
-    snap.forEach(doc => {
-      const d = doc.data();
-      box.innerHTML += `
-        <div class="commission-item">
-          <img src="${d.image}">
-          <div class="comm-text">
-            <div class="title">${d.title}</div>
-            <div class="price">${d.price}원</div>
-            <a href="commission.html?id=${doc.id}" style="font-size:14px; color:#3182f6; margin-top:6px; display:block;">상세 보기</a>
+    .card {
+      background: white;
+      margin: 18px;
+      padding: 22px;
+      border-radius: 18px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.03);
+    }
+
+    .user-box {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .user-box img {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background: #ddd;
+      object-fit: cover;
+    }
+
+    .user-name {
+      font-size: 18px;
+      font-weight: 600;
+    }
+
+    .edit-btn {
+      font-size: 13px;
+      color: #3182f6;
+      cursor: pointer;
+      margin-top: 6px;
+    }
+
+    .btn-primary {
+      display: block;
+      width: 100%;
+      padding: 15px;
+      background: #3182f6;
+      color: white;
+      text-align: center;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 600;
+      text-decoration: none;
+      margin-top: 16px;
+    }
+
+    .commission-item {
+      display: flex;
+      gap: 16px;
+      padding: 14px 0;
+      border-bottom: 1px solid #eee;
+    }
+
+    .commission-item:last-child {
+      border-bottom: none;
+    }
+
+    .commission-item img {
+      width: 80px;
+      height: 80px;
+      border-radius: 12px;
+      object-fit: cover;
+    }
+
+    .comm-text .title {
+      font-weight: 600;
+      font-size: 16px;
+    }
+
+    .comm-text .price {
+      font-size: 14px;
+      color: #3182f6;
+      margin-top: 4px;
+    }
+
+    .logout {
+      margin-top: 14px;
+      text-align: center;
+      color: #777;
+      font-size: 14px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <header>내 대시보드</header>
+
+  <!-- 사용자 정보 카드 -->
+  <div class="card">
+    <div class="user-box">
+      <img src="img/default-profile.png" id="profileImg" alt="프로필 이미지">
+      <div>
+        <div class="user-name" id="username">로그인 중...</div>
+        <div id="email" style="color:#666; font-size:14px;"></div>
+        <div class="edit-btn" id="editProfileBtn">프로필 수정하기</div>
+      </div>
+    </div>
+
+    <!-- 새 커미션 등록 페이지 링크 -->
+    <a href="new-commission.html" class="btn-primary">+ 새 커미션 등록</a>
+
+    <!-- 로그아웃 -->
+    <div class="logout" id="logoutBtn">로그아웃</div>
+  </div>
+
+  <!-- 내가 올린 커미션 목록 -->
+  <div class="card">
+    <h3 style="margin:0 0 16px 0; font-size:18px;">내 커미션 목록</h3>
+    <div id="myPosts">불러오는 중...</div>
+  </div>
+
+  <script type="module">
+    // firebase.js에서 auth, db만 가져옴 (storage 필요 없음)
+    import { auth, db } from "./js/firebase.js";
+    import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+    // 로그인 상태 체크
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        // 로그인 안 되어 있으면 로그인 페이지로
+        location.href = "login.html";
+        return;
+      }
+
+      // 사용자 정보 표시
+      const nameEl = document.getElementById("username");
+      const emailEl = document.getElementById("email");
+      const profileImgEl = document.getElementById("profileImg");
+
+      nameEl.innerText = user.displayName ?? "익명 사용자";
+      emailEl.innerText = user.email ?? "";
+
+      if (user.photoURL) {
+        profileImgEl.src = user.photoURL;
+      }
+
+      // 내 커미션 목록 불러오기
+      const q = query(collection(db, "commissions"), where("uid", "==", user.uid));
+      const snap = await getDocs(q);
+      const box = document.getElementById("myPosts");
+
+      if (snap.empty) {
+        box.innerHTML = "<div style='color:#777;'>아직 등록한 커미션이 없습니다.</div>";
+        return;
+      }
+
+      box.innerHTML = "";
+
+      snap.forEach(doc => {
+        const d = doc.data();
+        box.innerHTML += `
+          <div class="commission-item">
+            <img src="${d.image}" alt="커미션 이미지">
+            <div class="comm-text">
+              <div class="title">${d.title}</div>
+              <div class="price">${d.price}원</div>
+              <a href="commission.html?id=${doc.id}" style="font-size:14px; color:#3182f6; margin-top:6px; display:block;">상세 보기</a>
+            </div>
           </div>
-        </div>
-      `;
+        `;
+      });
     });
-  });
 
-  // 프로필 수정 페이지로 이동
-  document.getElementById("editProfileBtn").addEventListener("click", () => {
-    location.href = "edit-profile.html";   // 파일 이름이랑 정확히 같아야 함
-  });
+    // 프로필 수정 페이지로 이동
+    document.getElementById("editProfileBtn").addEventListener("click", () => {
+      location.href = "edit-profile.html";  // 실제 파일 이름이랑 꼭 같게!
+    });
 
-  // 로그아웃 → index.html 이동
-  document.getElementById("logoutBtn").addEventListener("click", async () => {
-    await signOut(auth);
-    location.href = "index.html";        // 로그인 페이지가 login.html이면 거기로 바꿔도 됨
-  });
-</script>
+    // 로그아웃 → index.html로 이동
+    document.getElementById("logoutBtn").addEventListener("click", async () => {
+      await signOut(auth);
+      location.href = "index.html";
+    });
+  </script>
+</body>
+</html>
