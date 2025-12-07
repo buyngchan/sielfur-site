@@ -18,6 +18,9 @@
       background: white;
       padding: 14px 16px;
       border-bottom: 1px solid #eee;
+      position: sticky;
+      top: 0;
+      z-index: 50;
     }
 
     .header-inner {
@@ -42,6 +45,7 @@
       text-decoration: none;
       color: #333;
       background: #f8fafc;
+      cursor: pointer;
     }
 
     .menu-btn:hover {
@@ -137,6 +141,87 @@
       display: block;
       text-decoration: none;
     }
+
+    /* ===== 사이드 메뉴 & 오버레이 ===== */
+    .overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.25);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease;
+      z-index: 80;
+    }
+
+    .overlay.show {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .side-menu {
+      position: fixed;
+      top: 0;
+      right: 0;
+      width: 260px;
+      max-width: 80%;
+      height: 100%;
+      background: white;
+      box-shadow: -4px 0 16px rgba(0,0,0,0.08);
+      transform: translateX(100%);
+      transition: transform 0.25s ease;
+      z-index: 90;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .side-menu.open {
+      transform: translateX(0);
+    }
+
+    .side-header {
+      padding: 16px 18px;
+      border-bottom: 1px solid #f1f3f5;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .side-title {
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    .side-close {
+      font-size: 20px;
+      cursor: pointer;
+      color: #777;
+    }
+
+    .side-list {
+      padding: 10px 0;
+      list-style: none;
+      margin: 0;
+      flex: 1;
+    }
+
+    .side-list li a {
+      display: block;
+      padding: 12px 18px;
+      text-decoration: none;
+      color: #222;
+      font-size: 14px;
+    }
+
+    .side-list li a:hover {
+      background: #f5f7fb;
+    }
+
+    .side-footer {
+      padding: 12px 18px 18px;
+      border-top: 1px solid #f1f3f5;
+      font-size: 12px;
+      color: #999;
+    }
   </style>
 </head>
 
@@ -145,20 +230,20 @@
   <header>
     <div class="header-inner">
       <div class="header-title">내 대시보드</div>
-
-      <!-- 🔥 메뉴 버튼: 다른 유저 창작물 피드 페이지로 이동 (home.html) -->
-      <a href="home.html" class="menu-btn">메뉴</a>
+      <button type="button" class="menu-btn" id="menuBtn">메뉴</button>
     </div>
   </header>
 
   <!-- 프로필 카드 -->
   <div class="card">
     <div class="user-box">
-      <img src="img/default-profile.png" alt="프로필 이미지">
+      <img src="img/default-profile.png" id="profileImg" alt="프로필 이미지">
 
       <div>
-        <div class="user-name">로그인된 사용자</div>
-        <div style="color:#666; font-size:14px;">user@email.com</div>
+        <!-- 🔥 Firebase에서 displayName 들어올 자리 -->
+        <div class="user-name" id="username">로그인 중...</div>
+        <!-- 🔥 Firebase에서 email 들어올 자리 -->
+        <div id="email" style="color:#666; font-size:14px;"></div>
 
         <!-- 프로필 수정 페이지로 이동 -->
         <a href="edit-profile.html" class="edit-btn">프로필 수정하기</a>
@@ -168,23 +253,156 @@
     <!-- 새 커미션 등록 페이지로 이동 -->
     <a href="new-commission.html" class="btn-primary">+ 새 커미션 등록</a>
 
-    <!-- 로그아웃 → index.html로 이동 (현재는 단순 이동만, 실제 로그아웃 로직은 나중에 JS로) -->
-    <a href="index.html" class="logout">로그아웃</a>
+    <!-- 로그아웃 (나중에 JS로 signOut 연결) -->
+    <a href="#" id="logoutLink" class="logout">로그아웃</a>
   </div>
 
-  <!-- 내 커미션 목록 (지금은 샘플, 나중에 JS로 Firestore에서 불러오게 할 수 있음) -->
+  <!-- 내 커미션 목록 -->
   <div class="card">
     <h3 style="margin:0 0 16px 0; font-size:18px;">내 커미션 목록</h3>
+    <div id="myPosts">불러오는 중...</div>
+  </div>
 
-    <div class="commission-item">
-      <img src="img/default-profile.png" alt="커미션 이미지">
-      <div class="comm-text">
-        <div class="title">샘플 커미션 제목</div>
-        <div class="price">30000원</div>
-        <a href="#" style="font-size:14px; color:#3182f6; margin-top:6px; display:block;">상세 보기</a>
-      </div>
+  <!-- 오버레이 + 사이드 메뉴 -->
+  <div class="overlay" id="menuOverlay"></div>
+
+  <nav class="side-menu" id="sideMenu">
+    <div class="side-header">
+      <div class="side-title">메뉴</div>
+      <div class="side-close" id="menuClose">&times;</div>
     </div>
 
-  </div>
+    <ul class="side-list">
+      <li><a href="home.html">🏠 홈 피드 (창작물 모아보기)</a></li>
+      <li><a href="dashboard.html">📂 내 대시보드</a></li>
+      <li><a href="new-commission.html">➕ 새 커미션 등록</a></li>
+      <li><a href="edit-profile.html">👤 프로필 수정</a></li>
+      <li><a href="#" id="logoutLinkSide">🚪 로그아웃</a></li>
+    </ul>
+
+    <div class="side-footer">
+      JJUB STUDIO · 메뉴
+    </div>
+  </nav>
+
+  <!-- 사이드 메뉴 열고 닫는 UI 전용 JS -->
+  <script>
+    const menuBtn = document.getElementById("menuBtn");
+    const sideMenu = document.getElementById("sideMenu");
+    const overlay = document.getElementById("menuOverlay");
+    const menuClose = document.getElementById("menuClose");
+
+    function openMenu() {
+      sideMenu.classList.add("open");
+      overlay.classList.add("show");
+    }
+
+    function closeMenu() {
+      sideMenu.classList.remove("open");
+      overlay.classList.remove("show");
+    }
+
+    menuBtn.addEventListener("click", openMenu);
+    menuClose.addEventListener("click", closeMenu);
+    overlay.addEventListener("click", closeMenu);
+  </script>
+
+  <!-- 🔥 Firebase 연동 스크립트 -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { 
+      getAuth, 
+      onAuthStateChanged,
+      signOut
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import {
+      getFirestore,
+      collection,
+      query,
+      where,
+      getDocs
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyA7UuqPTbv22dFHz5ugxdwnz0XDTDUQiP0",
+      authDomain: "jjub0812.firebaseapp.com",
+      projectId: "jjub0812",
+      storageBucket: "jjub0812.firebasestorage.app",
+      messagingSenderId: "713500860924",
+      appId: "1:713500860924:web:364e16fa1d2a1dbbef5279",
+      measurementId: "G-X7MESKH6MX"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    const usernameEl = document.getElementById("username");
+    const emailEl = document.getElementById("email");
+    const profileImgEl = document.getElementById("profileImg");
+    const myPostsBox = document.getElementById("myPosts");
+    const logoutLink = document.getElementById("logoutLink");
+    const logoutLinkSide = document.getElementById("logoutLinkSide");
+
+    // 로그인 상태 확인 + 프로필 정보 반영 + 내 커미션 불러오기
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        alert("로그인이 필요합니다.");
+        location.href = "login.html";   // 로그인 페이지 이름에 맞게 수정
+        return;
+      }
+
+      // 프로필 정보 표시
+      usernameEl.textContent = user.displayName || "익명 사용자";
+      emailEl.textContent = user.email || "";
+
+      if (user.photoURL) {
+        profileImgEl.src = user.photoURL;
+      }
+
+      // 내 커미션 목록 불러오기
+      try {
+        const q = query(collection(db, "commissions"), where("uid", "==", user.uid));
+        const snap = await getDocs(q);
+
+        if (snap.empty) {
+          myPostsBox.innerHTML = "<div style='color:#777;'>아직 등록한 커미션이 없습니다.</div>";
+          return;
+        }
+
+        myPostsBox.innerHTML = "";
+        snap.forEach((doc) => {
+          const d = doc.data();
+          myPostsBox.innerHTML += `
+            <div class="commission-item">
+              <img src="${d.image}" alt="커미션 이미지">
+              <div class="comm-text">
+                <div class="title">${d.title}</div>
+                <div class="price">${d.price}원</div>
+                <a href="commission.html?id=${doc.id}" style="font-size:14px; color:#3182f6; margin-top:6px; display:block;">상세 보기</a>
+              </div>
+            </div>
+          `;
+        });
+      } catch (err) {
+        console.error(err);
+        myPostsBox.innerHTML = "<div style='color:#e00;'>커미션 목록을 불러오는 중 오류가 발생했습니다.</div>";
+      }
+    });
+
+    // 로그아웃 처리 (위쪽 링크, 사이드 메뉴 링크 둘 다)
+    async function handleLogout(e) {
+      e.preventDefault();
+      try {
+        await signOut(auth);
+      } catch (err) {
+        console.error(err);
+      }
+      location.href = "index.html";  // 로그아웃 후 이동할 페이지
+    }
+
+    logoutLink.addEventListener("click", handleLogout);
+    logoutLinkSide.addEventListener("click", handleLogout);
+  </script>
 </body>
 </html>
