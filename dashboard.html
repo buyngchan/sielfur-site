@@ -104,12 +104,11 @@
       <div>
         <div class="user-name" id="username">로그인 중...</div>
         <div id="email" style="color:#666; font-size:14px;"></div>
-
-        <!-- 🔥 프로필 수정하기 버튼 → edit-profile.html 이동 -->
         <div class="edit-btn" id="editProfileBtn">프로필 수정하기</div>
       </div>
     </div>
 
+    <!-- 새 커미션 등록은 a 태그라서 JS 없어도 잘 됨 -->
     <a href="new-commission.html" class="btn-primary">+ 새 커미션 등록</a>
     <div class="logout" id="logoutBtn">로그아웃</div>
   </div>
@@ -120,13 +119,14 @@
   </div>
 
   <script type="module">
-    import { auth, db, storage } from "./js/firebase.js";
+    <!-- ❗ storage 빼고 auth, db만 import -->
+    import { auth, db } from "./js/firebase.js";
     import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
     import { collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
     onAuthStateChanged(auth, async (user) => {
       if (!user) {
-        location.href = "index.html";
+        location.href = "index.html";   // 여기 경로는 네 인덱스 파일 이름이랑 맞추기!
         return;
       }
 
@@ -159,15 +159,15 @@
       });
     });
 
-    // 🚀 프로필 수정 버튼 → edit-profile.html 이동
+    // 프로필 수정 페이지로 이동
     document.getElementById("editProfileBtn").addEventListener("click", () => {
-      location.href = "edit-profile.html";
+      location.href = "edit-profile.html";   // 파일 이름 정확히 이걸로 저장했는지 확인!
     });
 
-    // 로그아웃
+    // 로그아웃 → index.html 이동
     document.getElementById("logoutBtn").addEventListener("click", async () => {
       await signOut(auth);
-      location.href = "index.html";
+      location.href = "index.html";   // 로그인 페이지 파일명이 login.html이면 그걸로 바꿔줘
     });
   </script>
 </body>
