@@ -13,7 +13,6 @@
       color: #222;
     }
 
-    /* 상단 바 */
     header {
       background: white;
       padding: 20px;
@@ -22,7 +21,6 @@
       border-bottom: 1px solid #eee;
     }
 
-    /* 콘텐츠 박스 공통 */
     .card {
       background: white;
       margin: 18px;
@@ -31,7 +29,6 @@
       box-shadow: 0 4px 16px rgba(0,0,0,0.03);
     }
 
-    /* 사용자 정보 */
     .user-box {
       display: flex;
       align-items: center;
@@ -43,6 +40,8 @@
       height: 60px;
       border-radius: 50%;
       background: #ddd;
+      object-fit: cover;
+      cursor: pointer;
     }
 
     .user-name {
@@ -50,7 +49,13 @@
       font-weight: 600;
     }
 
-    /* 버튼 */
+    .edit-btn {
+      font-size: 13px;
+      color: #3182f6;
+      cursor: pointer;
+      margin-top: 6px;
+    }
+
     .btn-primary {
       display: block;
       width: 100%;
@@ -65,7 +70,6 @@
       margin-top: 16px;
     }
 
-    /* 커미션 목록 */
     .commission-item {
       display: flex;
       gap: 16px;
@@ -73,26 +77,13 @@
       border-bottom: 1px solid #eee;
     }
 
-    .commission-item:last-child {
-      border-bottom: none;
-    }
+    .commission-item:last-child { border-bottom: none; }
 
     .commission-item img {
       width: 80px;
       height: 80px;
       border-radius: 12px;
       object-fit: cover;
-    }
-
-    .comm-text .title {
-      font-weight: 600;
-      font-size: 16px;
-    }
-
-    .comm-text .price {
-      font-size: 14px;
-      color: #3182f6;
-      margin-top: 4px;
     }
 
     .logout {
@@ -102,19 +93,66 @@
       font-size: 14px;
       cursor: pointer;
     }
+
+    /* 팝업 */
+    .popup {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.4);
+      display: none;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .popup-box {
+      width: 320px;
+      background: white;
+      padding: 20px;
+      border-radius: 14px;
+    }
+
+    .popup input {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      margin-top: 10px;
+    }
+
+    .popup button {
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      background: #3182f6;
+      color: white;
+      font-weight: 600;
+      margin-top: 14px;
+      cursor: pointer;
+    }
   </style>
 </head>
-
 <body>
   <header>내 대시보드</header>
 
-  <!-- 사용자 정보 카드 -->
+  <!-- 프로필 수정 팝업 -->
+  <div class="popup" id="editPopup">
+    <div class="popup-box">
+      <h3 style="margin:0 0 10px 0;">프로필 정보 수정</h3>
+      <input type="text" id="editName" placeholder="이름 입력" />
+      <input type="file" id="editImage" accept="image/*" />
+      <button id="saveProfile">저장하기</button>
+    </div>
+  </div>
+
   <div class="card">
     <div class="user-box">
       <img src="img/default-profile.png" id="profileImg">
       <div>
         <div class="user-name" id="username">로그인 중...</div>
         <div id="email" style="color:#666; font-size:14px;"></div>
+        <div class="edit-btn" id="editProfileBtn">프로필 수정하기</div>
       </div>
     </div>
 
@@ -122,29 +160,32 @@
     <div class="logout" id="logoutBtn">로그아웃</div>
   </div>
 
-  <!-- 내가 올린 커미션 -->
   <div class="card">
     <h3 style="margin:0 0 16px 0; font-size:18px;">내 커미션 목록</h3>
     <div id="myPosts">불러오는 중...</div>
   </div>
 
   <script type="module">
-    import { auth, db } from "./js/firebase.js";
-    import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { auth, db, storage } from "./js/firebase.js";
+    import { onAuthStateChanged, signOut, updateProfile } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
     import { collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
 
-    // 로그인 상태 체크
+    const popup = document.getElementById("editPopup");
+    const editBtn = document.getElementById("editProfileBtn");
+    const saveBtn = document.getElementById("saveProfile");
+
     onAuthStateChanged(auth, async (user) => {
       if (!user) {
-        location.href = "login.html";
+        location.href = "index.html";
         return;
       }
 
-      // 사용자 정보 표시
       document.getElementById("username").innerText = user.displayName ?? "익명 사용자";
       document.getElementById("email").innerText = user.email ?? "";
+      if (user.photoURL) document.getElementById("profileImg").src = user.photoURL;
 
-      // 내 게시물 불러오기
+      // 내 커미션 불러오기
       const q = query(collection(db, "commissions"), where("uid", "==", user.uid));
       const snap = await getDocs(q);
       const box = document.getElementById("myPosts");
@@ -155,7 +196,6 @@
       }
 
       box.innerHTML = "";
-
       snap.forEach(doc => {
         const d = doc.data();
         box.innerHTML += `
@@ -171,10 +211,39 @@
       });
     });
 
+    // 프로필 수정 버튼
+    editBtn.addEventListener("click", () => {
+      popup.style.display = "flex";
+    });
+
+    // 프로필 저장
+    saveBtn.addEventListener("click", async () => {
+      const user = auth.currentUser;
+      if (!user) return;
+
+      const name = document.getElementById("editName").value;
+      const file = document.getElementById("editImage").files[0];
+
+      let photoURL = user.photoURL;
+
+      if (file) {
+        const fileRef = ref(storage, `profile/${user.uid}.jpg`);
+        await uploadBytes(fileRef, file);
+        photoURL = await getDownloadURL(fileRef);
+      }
+
+      await updateProfile(user, {
+        displayName: name || user.displayName,
+        photoURL: photoURL
+      });
+
+      location.reload();
+    });
+
     // 로그아웃
     document.getElementById("logoutBtn").addEventListener("click", async () => {
       await signOut(auth);
-      location.href = "login.html";
+      location.href = "index.html";
     });
   </script>
 </body>
