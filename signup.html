@@ -1,161 +1,201 @@
- (cd "$(git rev-parse --show-toplevel)" && git apply --3way <<'EOF' 
-diff --git a/signup.html b/signup.html
-index ab0b86c45df4f9132a190c18850d0042be0c0c95..1ab3d5747ddc240a0c6650df0b024d7f7f6e3f42 100644
---- a/signup.html
-+++ b/signup.html
-@@ -45,106 +45,148 @@
-     .input-group input {
-       width: 100%;
-       padding: 12px;
-       border: 1px solid #ccc;
-       border-radius: 12px;
-       font-size: 14px;
-     }
- 
-     .btn {
-       width: 100%;
-       padding: 14px;
-       border: none;
-       border-radius: 12px;
-       background: #3182f6;
-       color: white;
-       font-size: 16px;
-       font-weight: 600;
-       cursor: pointer;
-       margin-top: 10px;
-     }
- 
-     .btn:hover {
-       background: #1e6ce0;
-     }
- 
-+    .google-btn {
-+      display: flex;
-+      align-items: center;
-+      justify-content: center;
-+      gap: 8px;
-+      margin-top: 12px;
-+      background: white;
-+      color: #111;
-+      border: 1px solid #e0e0e0;
-+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.04);
-+    }
-+
-+    .google-btn:hover {
-+      background: #f7f7f7;
-+    }
-+
-+    .google-icon {
-+      width: 18px;
-+      height: 18px;
-+    }
-+
-     .sub-link {
-       text-align: center;
-       margin-top: 16px;
-       font-size: 14px;
-     }
- 
-     .sub-link a {
-       color: #3182f6;
-       text-decoration: none;
-       font-weight: 600;
-     }
-   </style>
- </head>
- 
- <body>
-   <div class="signup-box">
-     <h2>회원가입</h2>
- 
-     <div class="input-group">
-       <label>이메일</label>
-       <input id="email" type="email" placeholder="이메일을 입력하세요" />
-     </div>
- 
-     <div class="input-group">
-       <label>비밀번호</label>
-       <input id="password" type="password" placeholder="비밀번호를 입력하세요" />
-     </div>
- 
-     <div class="input-group">
-       <label>비밀번호 확인</label>
-       <input id="password2" type="password" placeholder="다시 입력하세요" />
-     </div>
- 
-     <button class="btn" id="signupBtn">회원가입</button>
-+    <button class="btn google-btn" id="googleSignupBtn">
-+      <svg class="google-icon" viewBox="0 0 533.5 544.3" aria-hidden="true">
-+        <path fill="#EA4335" d="M533.5 278.4c0-18.5-1.5-37-4.7-54.9H272v103.9h146.9c-6.3 34-25.2 62.8-53.9 82.1v68.2h86.8c50.8-46.8 81.7-115.7 81.7-199.3z"/>
-+        <path fill="#34A853" d="M272 544.3c72.9 0 134-24 178.6-65.5l-86.8-68.2c-24 16.3-55 25.8-91.8 25.8-70.6 0-130.4-47.5-151.8-111.3H31.3v69.9c44.2 87.9 134.8 149.3 240.7 149.3z"/>
-+        <path fill="#4A90E2" d="M120.2 324.9c-10.6-31.9-10.6-66.1 0-98l-0.1-69.9H31.3c-41.9 83.8-41.9 181.8 0 265.6l88.9-69.8z"/>
-+        <path fill="#FBBC05" d="M272 107.7c39.6-0.6 77.7 14 107 40.8l79.9-79.9C406 24.5 341.5-2.2 272 0 166.1 0 75.5 61.4 31.3 149.3l88.9 69.9C141.6 155.2 201.4 107.7 272 107.7z"/>
-+      </svg>
-+      Google로 계속하기
-+    </button>
- 
-     <div class="sub-link">
-       이미 계정이 있나요? <a href="login.html">로그인</a>
-     </div>
-   </div>
- 
- 
--  <script type="module">
--    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
--    import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-+    <script type="module">
-+      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-+    import { getAuth, GoogleAuthProvider, createUserWithEmailAndPassword, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
- 
-     const firebaseConfig = {
-       apiKey: "AIzaSyA7UuqPTbv22dFHz5ugxdwnz0XDTDUQiP0",
-   authDomain: "jjub0812.firebaseapp.com",
-   projectId: "jjub0812",
-   storageBucket: "jjub0812.firebasestorage.app",
-   messagingSenderId: "713500860924",
-   appId: "1:713500860924:web:364e16fa1d2a1dbbef5279",
-   measurementId: "G-X7MESKH6MX"
-     };
- 
-     const app = initializeApp(firebaseConfig);
-     const auth = getAuth(app);
-+    const provider = new GoogleAuthProvider();
- 
-     document.getElementById("signupBtn").addEventListener("click", () => {
-       const email = document.getElementById("email").value;
-       const password = document.getElementById("password").value;
-       const password2 = document.getElementById("password2").value;
- 
-       if (password !== password2) {
-         alert("비밀번호가 일치하지 않습니다.");
-         return;
-       }
- 
-       createUserWithEmailAndPassword(auth, email, password)
-         .then(() => {
-           alert("회원가입 성공! 로그인 페이지로 이동합니다.");
-           window.location.href = "login.html";
-         })
-         .catch((error) => {
-           alert("회원가입 실패: " + error.message);
-         });
-     });
--  </script>
-+
-+    document.getElementById("googleSignupBtn").addEventListener("click", () => {
-+      signInWithPopup(auth, provider)
-+        .then(() => {
-+          alert("구글 계정으로 가입 및 로그인되었습니다!");
-+          window.location.href = "dashboard.html";
-+        })
-+        .catch((error) => {
-+          alert("구글 로그인 실패: " + error.message);
-+        });
-+    });
-+    </script>
- 
- </body>
- </html>
- 
-EOF
-)
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>회원가입 | JJUB STUDIO</title>
+
+  <style>
+    body {
+      margin: 0;
+      font-family: "Pretendard", sans-serif;
+      background: #f5f7fa;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .signup-box {
+      width: 360px;
+      background: white;
+      padding: 40px;
+      border-radius: 20px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+    }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 24px;
+      font-size: 24px;
+      font-weight: 700;
+    }
+
+    .input-group {
+      margin-bottom: 16px;
+    }
+
+    .input-group label {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .input-group input {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #ccc;
+      border-radius: 12px;
+      font-size: 14px;
+    }
+
+    .btn {
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: 12px;
+      background: #3182f6;
+      color: white;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+
+    .btn:hover {
+      background: #1e6ce0;
+    }
+
+    /* Google 버튼 */
+    .google-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      margin-top: 12px;
+      background: white;
+      color: #202124;
+      border: 1px solid #e0e0e0;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.04);
+      height: 48px;
+      padding: 0 12px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .google-btn:hover {
+      background: #f7f7f7;
+    }
+
+    .google-icon {
+      width: 20px;
+      height: 20px;
+    }
+
+    .sub-link {
+      text-align: center;
+      margin-top: 16px;
+      font-size: 14px;
+    }
+
+    .sub-link a {
+      color: #3182f6;
+      text-decoration: none;
+      font-weight: 600;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="signup-box">
+    <h2>회원가입</h2>
+
+    <div class="input-group">
+      <label>이메일</label>
+      <input id="email" type="email" placeholder="이메일을 입력하세요" />
+    </div>
+
+    <div class="input-group">
+      <label>비밀번호</label>
+      <input id="password" type="password" placeholder="비밀번호를 입력하세요" />
+    </div>
+
+    <div class="input-group">
+      <label>비밀번호 확인</label>
+      <input id="password2" type="password" placeholder="다시 입력하세요" />
+    </div>
+
+    <button class="btn" id="signupBtn">회원가입</button>
+
+    <button class="google-btn" id="googleSignupBtn">
+      <img class="google-icon"
+        src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
+        alt="Google" />
+      Google로 계속하기
+    </button>
+
+    <div class="sub-link">
+      이미 계정이 있나요? <a href="login.html">로그인</a>
+    </div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { 
+      getAuth, 
+      GoogleAuthProvider,
+      createUserWithEmailAndPassword,
+      signInWithPopup 
+    } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyA7UuqPTbv22dFHz5ugxdwnz0XDTDUQiP0",
+      authDomain: "jjub0812.firebaseapp.com",
+      projectId: "jjub0812",
+      storageBucket: "jjub0812.firebasestorage.app",
+      messagingSenderId: "713500860924",
+      appId: "1:713500860924:web:364e16fa1d2a1dbbef5279",
+      measurementId: "G-X7MESKH6MX"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const provider = new GoogleAuthProvider();
+
+    // 이메일 회원가입
+    document.getElementById("signupBtn").addEventListener("click", () => {
+      const email = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value;
+      const password2 = document.getElementById("password2").value;
+
+      if (password !== password2) {
+        alert("비밀번호가 일치하지 않습니다.");
+        return;
+      }
+
+      createUserWithEmailAndPassword(auth, email, password)
+        .then(() => {
+          alert("회원가입 성공!");
+          window.location.href = "login.html";
+        })
+        .catch((error) => {
+          alert("회원가입 실패: " + error.message);
+        });
+    });
+
+    // 구글 로그인/가입
+    document.getElementById("googleSignupBtn").addEventListener("click", () => {
+      signInWithPopup(auth, provider)
+        .then(() => {
+          alert("구글 계정으로 가입되었습니다!");
+          window.location.href = "dashboard.html";
+        })
+        .catch((error) => {
+          alert("구글 로그인 실패: " + error.message);
+        });
+    });
+  </script>
+
+</body>
+</html>
